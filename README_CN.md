@@ -2,7 +2,7 @@
 
 <img src="docs/readme/cover.svg" alt="Neural-Janitor project overview" width="100%" />
 
-# Neural-Janitor
+# Neural-Janitor · Chrome / Edge 标签页管理
 
 **从你的真实关闭行为中学习，先预览，再让清理真正执行。**
 
@@ -13,6 +13,8 @@
 [安装](#安装指南) · [第一次使用](#第一次使用) · [决策机制](#清理决策怎样形成) · [代码导航](#代码导航)
 
 </div>
+
+面向经常打开大量标签页的 macOS 用户。当前需要 **macOS 13+、Chrome / Edge 与 Swift 工具链**；按[安装指南](#安装指南)加载扩展并安装本地伴随程序，第一次使用默认 Test 预览模式。
 
 Neural-Janitor 由 Chrome / Edge 扩展与本地 Swift 伴随程序组成。它学习**你实际在什么时候关闭标签页**，再结合域名历史、页面分类、使用投入和配置上限，给出清理建议。Core ML 空闲预测与本地页面分类为这个策略提供辅助信号。
 
