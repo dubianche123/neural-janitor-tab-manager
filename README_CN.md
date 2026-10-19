@@ -8,7 +8,7 @@
 
 [![macOS](https://img.shields.io/badge/macOS-13%2B-5C84C6)](companion/NeuralJanitorCompanion/Package.swift) [![Browser](https://img.shields.io/badge/Browser-Chrome%20%2F%20Edge-5375B5)](extension/manifest.json) [![License](https://img.shields.io/badge/License-MIT-3A9F82)](LICENSE)
 
-[English](README.md) · **中文**
+[English](README.md) · **简体中文**
 
 [安装](#安装指南) · [第一次使用](#第一次使用) · [决策机制](#清理决策怎样形成) · [代码导航](#代码导航)
 
@@ -52,8 +52,8 @@ Native Messaging 需要在 macOS 上安装一个 native host manifest。Chrome /
 ### 1. 克隆或打开仓库
 
 ```bash
-git clone https://github.com/dubianche123/device-native-tab-hygiene.git
-cd device-native-tab-hygiene
+git clone https://github.com/dubianche123/neural-janitor-tab-manager.git
+cd neural-janitor-tab-manager
 ```
 
 ### 2. 加载扩展

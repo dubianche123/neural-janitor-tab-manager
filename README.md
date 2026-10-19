@@ -2,19 +2,19 @@
 
 <img src="docs/readme/cover.svg" alt="Neural-Janitor project overview" width="100%" />
 
-# Neural-Janitor · Chrome / Edge 标签页管理
+# Neural-Janitor · Chrome / Edge Tab Manager
 
 **Learn which tabs deserve to stay. Preview cleanup before letting it act.**
 
 [![macOS](https://img.shields.io/badge/macOS-13%2B-5C84C6)](companion/NeuralJanitorCompanion/Package.swift) [![Browser](https://img.shields.io/badge/Browser-Chrome%20%2F%20Edge-5375B5)](extension/manifest.json) [![License](https://img.shields.io/badge/License-MIT-3A9F82)](LICENSE)
 
-**English** · [中文](README_CN.md)
+**English** · [简体中文](README_CN.md)
 
 [Install](#setup-instructions) · [First session](#your-first-session) · [Decision logic](#how-decisions-work) · [Code guide](#explore-the-code)
 
 </div>
 
-**中文速览：** 面向经常打开大量标签页的 macOS 用户，在本机学习关闭习惯、预览清理建议，并按需启用自动清理。当前需要 macOS 13+、Chrome / Edge 与 Swift 工具链；从[中文安装指南](README_CN.md#安装指南)开始，安装后默认 Test 预览模式。
+For macOS users who keep many tabs open. Requires **macOS 13+, Chrome / Edge and a Swift toolchain**; follow the [installation steps](#setup-instructions) to load the extension and native companion. Fresh installs start in Test preview mode.
 
 Neural-Janitor is a Chrome / Edge extension paired with a local Swift companion. It learns from **when you actually close tabs**, then combines domain history, page category, engagement and your configured caps to propose cleanup. Core ML idle prediction and local page classification support that policy.
 
@@ -52,8 +52,8 @@ Native Messaging requires a native host manifest on macOS. Chrome / Edge cannot 
 ### 1. Clone or open the repository
 
 ```bash
-git clone https://github.com/dubianche123/device-native-tab-hygiene.git
-cd device-native-tab-hygiene
+git clone https://github.com/dubianche123/neural-janitor-tab-manager.git
+cd neural-janitor-tab-manager
 ```
 
 ### 2. Load the extension
