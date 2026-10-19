@@ -1,13 +1,20 @@
-<div align="right">
-  <sub>
-    <strong>English</strong> |
-    <a href="README_CN.md">中文</a>
-  </sub>
+<div align="center">
+
+<img src="docs/readme/cover.svg" alt="Neural-Janitor project overview" width="100%" />
+
+# Neural-Janitor
+
+**Tab behavior, local learning, and gated cleanup on your device.**
+
+[![License](https://img.shields.io/badge/License-MIT-3A9F82)](LICENSE)
+
+**English** · [中文](README_CN.md)
+
+[Setup](#setup-instructions) · [Features](#current-feature-set) · [Model migration](#moving-the-local-model-between-macs)
+
 </div>
 
-# Neural-Janitor: Edge-Accelerated Tab Hygiene
-
-## A local Core ML browser automation engine
+**Starts in Test mode.** Preview first, then use learning readiness to enter Armed / Deploy. Closed tabs have a recovery history.
 
 Neural-Janitor is a Chrome / Edge tab management extension powered by Apple's local machine learning stack. It tracks lightweight browsing signals, learns how long different kinds of tabs should stay open, and uses a local Swift companion to add idle-window prediction and on-device page classification.
 
@@ -16,100 +23,9 @@ The core rule is simple:
 
 ## Runtime Dataflow (C4 Container View)
 
-```mermaid
-%%{init: {
-  'theme': 'base',
-  'themeVariables': {
-    'primaryColor': '#0052cc',
-    'primaryTextColor': '#fff',
-    'primaryBorderColor': '#0052cc',
-    'lineColor': '#888',
-    'secondaryColor': '#006100',
-    'tertiaryColor': '#fff',
-    'clusterBkg': 'rgba(255, 255, 255, 0.05)',
-    'clusterBorder': '#3b82f6',
-    'fontSize': '14px'
-  }
-}}%%
-flowchart TB
-  subgraph actors["<span style='color:#3b82f6'>External Actors & Platforms</span>"]
-    direction LR
-    user(["👤 User<br/>Browsing behavior"])
-    chrome[["🧩 Browser APIs<br/>tabs · idle · storage · system"]]
-  end
+![How it works](docs/readme/flow.svg)
 
-  subgraph browser["<span style='color:#3b82f6'>Container: Chrome / Edge Extension (Manifest V3)</span>"]
-    direction TB
-    subgraph frontend["<span style='color:#3b82f6'>Frontend & Service Layer</span>"]
-      p_ui["🖥️ Popup UI<br/>ML Console · AI Suggestions"]
-      p_telemetry["📈 Status & Telemetry<br/>CPU / MEM / Power signals"]
-    end
-
-    subgraph background["<span style='color:#3b82f6'>Background Logic: Service Worker</span>"]
-      b_tracker["📍 Tab Tracker<br/>Focus · dwell · interactions"]
-      b_learner["🎓 Closure Learner<br/>Manual vs Auto sampling"]
-      b_engine["🏷️ Category Engine<br/>Domain map · memory · signals"]
-      b_orchestrator["🧹 Hygiene Orchestrator<br/>Stale check · AI Cleanup · logic"]
-    end
-
-    subgraph storage["<span style='color:#f59e0b'>Persistence: chrome.storage.local</span>"]
-      s_registry[("Live Registry<br/>Active tab entries")]
-      s_samples[("Learning Store<br/>Behavioral samples")]
-      s_settings[("User Config<br/>Rules · Whitelist · Blacklist")]
-      s_log[("Closed Tab Log<br/>Recovery & restore")]
-    end
-  end
-
-  subgraph ipc["<span style='color:#94a3b8'>Communication Path</span>"]
-    nativeBus["📬 Native Messaging (V2)<br/>JSON over stdio"]
-  end
-
-  subgraph native["<span style='color:#10b981'>Container: macOS Swift Companion App</span>"]
-    direction TB
-    n_host["Native Message Host<br/>Event multiplexer"]
-    n_classifier["🔤 NLP Classifier<br/>NaturalLanguage Framework"]
-    n_chronos["🧠 Chronos Engine<br/>9-feature ML Classifier"]
-    n_storage[("🗄️ Native Support<br/>Event history · ML models")]
-  end
-
-  coreml[["⚡ Apple Core ML Runtime<br/>ANE · GPU · CPU scheduler"]]
-
-  %% Logical Flow - Minimized Crossing
-  user --> p_ui
-  chrome --> b_tracker
-  
-  %% Tracker -> Registry
-  b_tracker -- "Update state" --> s_registry
-  
-  %% Learner <-> Samples
-  b_learner <--> s_samples
-  
-  %% Engine & Orchestrator Flow
-  b_engine -- "Classify" --> b_orchestrator
-  b_orchestrator -- "Read rules" --> s_settings
-  b_orchestrator -- "Log events" --> s_log
-  b_orchestrator -- "Close/Tag" --> chrome
-
-  %% UI Flow
-  p_ui <--> s_settings
-  p_ui <--> s_log
-  p_ui -- "Trigger" --> b_orchestrator
-
-  %% Cross-Container IPC
-  b_engine <--> nativeBus <--> n_host
-  n_host <--> n_classifier
-  n_host <--> n_chronos
-  n_chronos <--> n_storage
-  n_chronos <--> coreml
-
-  %% Global Node Styling
-  classDef default fill:#1e293b,stroke:#3b82f6,color:#fff,stroke-width:1px
-  classDef actor fill:#334155,stroke:#f59e0b,color:#fff,stroke-width:1px
-  classDef platform fill:#0f172a,stroke:#94a3b8,color:#fff,stroke-width:1px
-  
-  class user actor
-  class chrome,coreml platform
-```
+[Detailed C4 Mermaid source](docs/readme/runtime-detail.mmd)
 
 The two execution contexts are intentionally split:
 - **Browser context**: tracks focus, dwell, interactions, classification, and cleanup actions.
@@ -198,7 +114,8 @@ Native Messaging requires a native host manifest on macOS. Chrome / Edge cannot 
 ### 1. Clone or open the repository
 
 ```bash
-cd Neural-Janitor
+git clone https://github.com/dubianche123/device-native-tab-hygiene.git
+cd device-native-tab-hygiene
 ```
 
 ### 2. Load the extension
