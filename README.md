@@ -4,108 +4,44 @@
 
 # Neural-Janitor
 
-**Tab behavior, local learning, and gated cleanup on your device.**
+**Learn which tabs deserve to stay. Preview cleanup before letting it act.**
 
-[![License](https://img.shields.io/badge/License-MIT-3A9F82)](LICENSE)
+[![macOS](https://img.shields.io/badge/macOS-13%2B-5C84C6)](companion/NeuralJanitorCompanion/Package.swift) [![Browser](https://img.shields.io/badge/Browser-Chrome%20%2F%20Edge-5375B5)](extension/manifest.json) [![License](https://img.shields.io/badge/License-MIT-3A9F82)](LICENSE)
 
 **English** · [中文](README_CN.md)
 
-[Setup](#setup-instructions) · [Features](#current-feature-set) · [Model migration](#moving-the-local-model-between-macs)
+[Install](#setup-instructions) · [First session](#your-first-session) · [Decision logic](#how-decisions-work) · [Code guide](#explore-the-code)
 
 </div>
 
-**Starts in Test mode.** Preview first, then use learning readiness to enter Armed / Deploy. Closed tabs have a recovery history.
+Neural-Janitor is a Chrome / Edge extension paired with a local Swift companion. It learns from **when you actually close tabs**, then combines domain history, page category, engagement and your configured caps to propose cleanup. Core ML idle prediction and local page classification support that policy.
 
-Neural-Janitor is a Chrome / Edge tab management extension powered by Apple's local machine learning stack. It tracks lightweight browsing signals, learns how long different kinds of tabs should stay open, and uses a local Swift companion to add idle-window prediction and on-device page classification.
+A documentation page, a disposable search result and a long-running work tab do not need the same lifetime. The interesting part is the full feedback loop: **observe → learn → preview → act when permitted → recover if needed**.
 
-The core rule is simple:
-**tab management should learn from the user, and that learning should stay entirely on-device.**
+## What you can try
 
-## Runtime Dataflow (C4 Container View)
+| Experience | What the current code does |
+| --- | --- |
+| Preview stale tabs | Fresh installs start in **Test**; inspect candidates without closing them. |
+| Learn personal retention | Manual closes feed domain/category recommendations; Chrome and Edge share the native learning store. |
+| Separate search results | Search pages have dedicated `Search Results` / `search:<engine>` learning buckets. |
+| Gate automatic cleanup | Deployment readiness controls Test / Armed / Deploy; scheduled stale closure also checks real browser idle state. |
+| Inspect the reasoning inputs | The popup exposes manual/automatic samples, learned buckets, readiness and local runtime status. |
+| Recover closed tabs | Restore one or several records; restoring an auto-close removes the corresponding learning sample. |
 
-![How it works](docs/readme/flow.svg)
+## How decisions work
 
-[Detailed C4 Mermaid source](docs/readme/runtime-detail.mmd)
+![Preview, readiness and recovery](docs/readme/flow.svg)
 
-The two execution contexts are intentionally split:
-- **Browser context**: tracks focus, dwell, interactions, classification, and cleanup actions.
-- **Native context**: handles local training, idle prediction, hardware telemetry, and NLP fallback classification.
+| Mode | What you see | What can happen |
+| --- | --- | --- |
+| `Test` | Candidates and learning status | Preview only; AI Clean remains locked. This is the fresh-install default. |
+| `Armed` | Deploy has been requested, but readiness is still developing | Test behavior continues until the ready threshold is met. |
+| `Deploy` | Cleanup is enabled | Eligible scheduled and manual cleanup can close tabs and write recovery records. |
 
-## Why This Exists
+The current gate allows arming at **3 manual closes + 1 learned bucket**, and readiness at **5 manual closes + 2 learned buckets**. These are startup gates, not a statistical accuracy guarantee. [deployment-readiness.js](extension/js/deployment-readiness.js) owns the thresholds and downgrade behavior. Requesting Deploy too early keeps Test; losing readiness can return Deploy to Armed or Test.
 
-Hardcoded timers are predictable, but they are also blunt. A tab that sat untouched for two days might still matter if it was a long research session; another might be disposable after ten minutes. Neural-Janitor treats close time as something to learn from your own behavior instead of something to hardcode once.
-
-| Problem | Traditional Tab Closers | Neural-Janitor |
-|:--|:--|:--|
-| **When to close?** | Static timer such as 3 or 7 days. | Learned close time × tab importance, with real idle approval for automatic stale closure. |
-| **Categorization** | Simple domain matching. | Domain map + page signals + local NLP fallback. |
-| **Resource Cost** | Constant background polling. | Event-driven worker + local Core ML inference. |
-| **Privacy** | Often cloud-backed. | 100% local. No telemetry leaves the device. |
-
-## Current Feature Set
-
-- **Test / Armed / Deploy modes**: Test mode is preview-only and locks AI Clean. Armed mode keeps Test behavior until learning is ready, then automatically enables Deploy. Deploy lets idle-approved scheduled cleanup and AI Clean close tabs and write to the closed-tab log.
-- **Safe default**: Fresh installs start in Test mode. Deploy is locked while data is severely insufficient, can be armed once early close-time learning exists, and only activates when the readiness target is met.
-- **Category-aware retention**: AI, work, finance, email, reference, social, entertainment, shopping, news, NSFW, and `Other` each have their own close-time cap.
-- **Shared closure learning**: Real browser closes and popup closes sync into the companion so Chrome and Edge learn from the same closure database. The browser only keeps a tiny pending queue when the companion is offline.
-- **Root-domain fallback learning**: Hard-to-classify sites can still get their own learned behavior instead of being mixed into one huge `Other` bucket.
-- **Search-result learning**: SERP tabs use their own `Search Results` category and `search:<engine>` learning buckets, so they can be reclaimed without teaching unrelated Google/Bing/Yahoo pages to close early.
-- **Holiday-aware idle predictions**: Japan and China calendars can widen or shift likely idle windows in the ML insights view.
-- **AI Cleanup**: Prioritizes reducing tab count first, then bounded memory-pressure cleanup. In Deploy mode, manual AI Clean can also proactively trim a few clearly low-value tabs even when the machine is already under target, while still ranking by learned close-time pressure, engagement, and interaction count.
-- **Transparent telemetry UI**: Memory, CPU, model readiness, closure learning, and idle-confidence state are shown directly in the popup.
-- **Closed-tab recovery**: Tabs closed by the extension can be restored one-by-one or in batches. Restoring an auto-closed tab removes that auto-cleanup sample from learning.
-
-## Category Closure Time Rules
-
-Tabs are assigned a close time from four inputs: category defaults, learned manual-close behavior, root-domain history, and per-tab importance. Root-domain history wins over broad category history whenever it exists, so one fast-closing site does not teach the whole category to close early. Search result pages are isolated into `Search Results` and `search:<engine>` buckets. The Settings sliders are caps, not replacements; the model can close sooner, but it cannot keep a tab longer than the configured maximum.
-
-| Category | Max Idle Time | Rationale |
-|----------|--------------|-----------|
-| **NSFW** | **12 hours** | Opened once, walked away. Close quickly. |
-| Search Results | 12 hours | Disposable by default, then adapts from your SERP close behavior. |
-| Social Media | 3 days | Fast-decaying value. |
-| Entertainment | 5 days | Often revisit-able but not work-critical. |
-| News | 5 days | Freshness matters. |
-| Shopping | 7 days | Useful, but not indefinitely. |
-| Other | 7 days | Conservative default for uncategorized pages. |
-| Reference | 10 days | Documentation and articles often stay relevant. |
-| Work & Productivity | 14 days | PRs, tickets, and drafts need time. |
-| Email & Communication | 14 days | Session continuity can matter. |
-| **Finance & Banking** | **30 days** | High-value sessions, but not permanent. |
-| **AI Tools** | **30 days** | Long-running research and chat sessions are often intentional. |
-
-## Architecture
-
-### 1. Tab Interaction Tracker
-
-The tracker records when a tab enters foreground, leaves foreground, how long it stayed there, and how often you interacted with it. Cleanup compares `now - lastBackgroundedAt` against an effective close time instead of relying on simple "opened at" age.
-
-### 2. Manual Closure Learner
-
-Manual closes are the primary signal. The learner stores category, root domain, foreground dwell, background age, and interactions, then recommends close times from meaningful manual samples. Domain-level patterns adapt first; category-level patterns require broader evidence across multiple domains. Automatic cleanup samples are kept as context only so the system does not train on its own decisions.
-
-### 3. Local Page Classifier
-
-The browser classifies pages with a domain map and content signals first. When confidence is low, the Swift companion uses Apple `NaturalLanguage` to score the page title, description, and text. The browser also keeps a small root-domain category memory so repeat sites do not keep falling back to `Other`.
-
-### 4. Auxiliary Idle Predictor
-
-The companion trains a 9-feature `TrainingSample` model from local activity history. That model is deliberately auxiliary: it influences idle-context multipliers and the ML console, while close-time learning remains the main decision source. Automatic stale closure waits for Chrome's real `idle` / `locked` state; a high model prior alone is not permission to close tabs while you are active.
-
-### 5. Holiday-Aware Idle Windows
-
-The browser sends per-day holiday levels for the next seven calendar dates to the companion. This lets a Monday holiday change Monday's prediction even if today is a normal workday. Workday and weekend/holiday sleep-wake windows act as priors, not hard cleanup rules.
-
-### 6. Memory Pressure Cleanup
-
-AI Cleanup scores tabs by learned close-time pressure, engagement, interaction count, and category as a weak tie-breaker. Lower-value, low-interaction, long-idle tabs are cleaned first. Test mode stays preview-only. When Deploy is active and you manually run AI Clean, the extension can still trim a small batch of obviously low-value background tabs.
-
-## Security And Privacy
-
-- **No cloud analytics**: Activity logs, models, and tab registries stay on the Mac and in extension local storage.
-- **No remote tracking scripts**: The extension does not inject remote code or analytics pixels.
-- **Local model only**: Core ML training and inference stay on-device.
-- **Native Messaging boundary**: Browser JS and Swift communicate with length-prefixed local JSON over stdio.
+Retention learning is the main decision source. A high predicted idle probability alone does **not** authorize scheduled closure while you are active. Manual AI Clean is a separate, explicitly requested path and can trim low-value background tabs even below the target count.
 
 ## Setup Instructions
 
@@ -147,6 +83,63 @@ If the Swift companion or native host metadata changes, rerun:
 ```bash
 ./scripts/install.sh YOUR_CHROME_EXTENSION_ID [YOUR_EDGE_EXTENSION_ID]
 ```
+
+## Your first session
+
+1. Open the popup and confirm **Test** mode and the companion's connection status.
+2. Browse normally and close tabs you are finished with. Those manual decisions create the useful training signal.
+3. Use **Preview** to inspect proposed stale tabs; check domain/category learning and readiness in the popup.
+4. Request Deploy when you want cleanup enabled. If learning is only armable, it enters Armed until ready.
+5. After a permitted close, inspect the closed-tab log and try restoring one record.
+
+For example, repeatedly closing search results quickly should teach the isolated search bucket; it should not automatically shorten the lifetime of unrelated mail or work pages on the same broad provider. Domain recommendations take precedence over broad category recommendations where available.
+
+Recovery first tries a browser session restore when a session ID exists, then falls back to reopening the recorded URL. It is not a backup of unsaved page state. The restoration path and sample removal are in [background.js](extension/js/background.js).
+
+## Architecture
+
+### 1. Tab Interaction Tracker
+
+The tracker records when a tab enters foreground, leaves foreground, how long it stayed there, and how often you interacted with it. Cleanup compares `now - lastBackgroundedAt` against an effective close time instead of relying on simple "opened at" age.
+
+### 2. Manual Closure Learner
+
+Manual closes are the primary signal. The learner stores category, root domain, foreground dwell, background age, and interactions, then recommends close times from meaningful manual samples. Domain-level patterns adapt first; category-level patterns require broader evidence across multiple domains. Automatic cleanup samples are kept as context only so the system does not train on its own decisions.
+
+### 3. Local Page Classifier
+
+The browser classifies pages with a domain map and content signals first. When confidence is low, the Swift companion uses Apple `NaturalLanguage` to score the page title, description, and text. The browser also keeps a small root-domain category memory so repeat sites do not keep falling back to `Other`.
+
+### 4. Auxiliary Idle Predictor
+
+The companion trains a 9-feature `TrainingSample` model from local activity history. That model is deliberately auxiliary: it influences idle-context multipliers and the ML console, while close-time learning remains the main decision source. Automatic stale closure waits for Chrome's real `idle` / `locked` state; a high model prior alone is not permission to close tabs while you are active.
+
+### 5. Holiday-Aware Idle Windows
+
+The browser sends per-day holiday levels for the next seven calendar dates to the companion. This lets a Monday holiday change Monday's prediction even if today is a normal workday. Workday and weekend/holiday sleep-wake windows act as priors, not hard cleanup rules.
+
+### 6. Memory Pressure Cleanup
+
+AI Cleanup scores tabs by learned close-time pressure, engagement, interaction count, and category as a weak tie-breaker. Lower-value, low-interaction, long-idle tabs are cleaned first. Test mode stays preview-only. When Deploy is active and you manually run AI Clean, the extension can still trim a small batch of obviously low-value background tabs.
+
+## Category Closure Time Rules
+
+Tabs are assigned a close time from four inputs: category defaults, learned manual-close behavior, root-domain history, and per-tab importance. Root-domain history wins over broad category history whenever it exists, so one fast-closing site does not teach the whole category to close early. Search result pages are isolated into `Search Results` and `search:<engine>` buckets. The Settings sliders are caps, not replacements; the model can close sooner, but it cannot keep a tab longer than the configured maximum.
+
+| Category | Max Idle Time | Rationale |
+|----------|--------------|-----------|
+| **NSFW** | **12 hours** | Opened once, walked away. Close quickly. |
+| Search Results | 12 hours | Disposable by default, then adapts from your SERP close behavior. |
+| Social Media | 3 days | Fast-decaying value. |
+| Entertainment | 5 days | Often revisit-able but not work-critical. |
+| News | 5 days | Freshness matters. |
+| Shopping | 7 days | Useful, but not indefinitely. |
+| Other | 7 days | Conservative default for uncategorized pages. |
+| Reference | 10 days | Documentation and articles often stay relevant. |
+| Work & Productivity | 14 days | PRs, tickets, and drafts need time. |
+| Email & Communication | 14 days | Session continuity can matter. |
+| **Finance & Banking** | **30 days** | High-value sessions, but not permanent. |
+| **AI Tools** | **30 days** | Long-running research and chat sessions are often intentional. |
 
 ## Moving The Local Model Between Macs
 
@@ -208,6 +201,28 @@ If you prefer the terminal, run:
 scripts/reset_model_state.sh
 ```
 
+## Explore the code
+
+| Responsibility | Source |
+| --- | --- |
+| Browser events, scheduling, cleanup and restoration | [background.js](extension/js/background.js) |
+| Manual-close recommendations and sample handling | [closure-learner.js](extension/js/closure-learner.js) |
+| Test / Armed / Deploy transitions | [deployment-readiness.js](extension/js/deployment-readiness.js) |
+| Cleanup ranking | [cleanup-ranking.js](extension/js/cleanup-ranking.js) |
+| Page categories and isolated search buckets | [categorizer.js](extension/js/categorizer.js), [search-results.js](extension/js/search-results.js) |
+| Popup controls and explanations | [popup.js](extension/js/popup.js), [popup.html](extension/popup.html) |
+| Native host, training, prediction and local storage | [Swift companion](companion/NeuralJanitorCompanion/Sources/main.swift) |
+| Native host registration and model migration | [scripts/](scripts/) |
+
+The browser handles tab permissions and actions. The companion supplies local learning and predictions through **length-prefixed JSON over Native Messaging stdio**. The installer registers the extension IDs allowed to connect to that host. [Detailed C4 source](docs/readme/runtime-detail.mmd) is retained for a component-level view.
+
+## Security And Privacy
+
+- **No cloud analytics**: Activity logs, models, and tab registries stay on the Mac and in extension local storage.
+- **No remote tracking scripts**: The extension does not inject remote code or analytics pixels.
+- **Local model only**: Core ML training and inference stay on-device.
+- **Native Messaging boundary**: Browser JS and Swift communicate with length-prefixed local JSON over stdio.
+
 ## Development Checks
 
 ```bash
@@ -228,3 +243,7 @@ swift build -c release --package-path companion/NeuralJanitorCompanion
 ```
 
 <p align="center"><sub>Neural-Janitor: Edge-Accelerated Tab Hygiene — The Chronos Engine</sub></p>
+
+## License
+
+[MIT](LICENSE). Chrome / Edge developer-mode loading and a macOS native-host installation are currently required; this repository is not a signed browser-store release.

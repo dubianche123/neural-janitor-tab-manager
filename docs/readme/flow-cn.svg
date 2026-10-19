@@ -1,25 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="t d"><title id="t">Neural-Janitor · 工作原理</title><desc id="d">Swift 伴随程序通过 Native Messaging 提供本地学习与预测；新安装默认处于 Test 模式。</desc>
-<rect x="1" y="1" width="1198" height="298" rx="18" fill="#FAFCFF" stroke="#DCE5F0"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+<title id="title">Neural-Janitor · 预览、就绪度与恢复</title><desc id="desc">Neural-Janitor · 预览、就绪度与恢复. Repository-specific technical illustration.</desc>
 <g font-family="Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif">
-<text x="36" y="42" font-size="24" fill="#253B55" font-weight="650" text-anchor="start">Neural-Janitor · 工作原理</text>
-<rect x="36" y="97" width="206.4" height="100" rx="12" fill="#ECF3FE" stroke="#95B3DD"/>
-<text x="52.0" y="132" font-size="19" fill="#253B55" font-weight="650" text-anchor="start">浏览器事件</text>
-<text x="52.0" y="163" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">焦点、停留与关闭</text>
-<path d="M242.4 147H266.4m-6-4 6 4-6 4" stroke="#7186A3" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-<rect x="266.4" y="97" width="206.4" height="100" rx="12" fill="#E9F5F0" stroke="#88B7A3"/>
-<text x="282.4" y="132" font-size="19" fill="#253B55" font-weight="650" text-anchor="start">本地学习</text>
-<text x="282.4" y="163" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">分类与保留时间</text>
-<path d="M472.8 147H496.8m-6-4 6 4-6 4" stroke="#7186A3" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-<rect x="496.8" y="97" width="206.4" height="100" rx="12" fill="#ECF3FE" stroke="#95B3DD"/>
-<text x="512.8" y="132" font-size="19" fill="#253B55" font-weight="650" text-anchor="start">就绪度门控</text>
-<text x="512.8" y="163" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">Test / Armed / Deploy</text>
-<path d="M703.2 147H727.2m-6-4 6 4-6 4" stroke="#7186A3" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-<rect x="727.2" y="97" width="206.4" height="100" rx="12" fill="#E9F5F0" stroke="#88B7A3"/>
-<text x="743.2" y="132" font-size="19" fill="#253B55" font-weight="650" text-anchor="start">执行动作</text>
-<text x="743.2" y="163" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">预览或清理</text>
-<path d="M933.6 147H957.6m-6-4 6 4-6 4" stroke="#7186A3" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-<rect x="957.6" y="97" width="206.4" height="100" rx="12" fill="#ECF3FE" stroke="#95B3DD"/>
-<text x="973.6" y="132" font-size="19" fill="#253B55" font-weight="650" text-anchor="start">恢复记录</text>
-<text x="973.6" y="163" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">已关闭标签页历史</text>
-<text x="36" y="258" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">Swift 伴随程序通过 Native Messaging 提供本地学习与预测；新安装默认处于 Test 模式。</text>
+<rect x="1" y="1" width="1198" height="678" rx="20" fill="#F8FAFD" stroke="#DBE3ED" />
+<text x="36" y="44" font-size="24" fill="#23324A" font-weight="700" text-anchor="start">先具备学习就绪度，清理建议才可能变成动作。</text>
+<rect x="38" y="104" width="310" height="141" rx="14" fill="#EAF1FE" stroke="#9CB4DF" />
+<text x="56" y="136" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">TEST</text>
+<text x="56" y="166" font-size="16" fill="#536782" font-weight="400" text-anchor="start">新安装默认状态</text>
+<text x="56" y="190" font-size="16" fill="#536782" font-weight="400" text-anchor="start">只预览；AI Clean 锁定</text>
+<rect x="448" y="104" width="310" height="141" rx="14" fill="#FFF3DD" stroke="#D9BD83" />
+<text x="466" y="136" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">ARMED</text>
+<text x="466" y="166" font-size="16" fill="#536782" font-weight="400" text-anchor="start">已请求启用，数据继续积累</text>
+<text x="466" y="190" font-size="16" fill="#536782" font-weight="400" text-anchor="start">仍按 Test 行为运行</text>
+<rect x="858" y="104" width="304" height="141" rx="14" fill="#E7F5EF" stroke="#93C8B0" />
+<text x="876" y="136" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">DEPLOY</text>
+<text x="876" y="166" font-size="16" fill="#536782" font-weight="400" text-anchor="start">达到就绪度目标</text>
+<text x="876" y="190" font-size="16" fill="#536782" font-weight="400" text-anchor="start">符合条件的清理可关闭标签</text>
+<path d="M348 172H448m-7 -5 7 5 -7 5" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M758 172H858m-7 -5 7 5 -7 5" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="364" y="155" font-size="13" fill="#23324A" font-weight="400" text-anchor="start">可待命</text>
+<text x="776" y="155" font-size="13" fill="#23324A" font-weight="400" text-anchor="start">已就绪</text>
+<path d="M1010 245V284H603V245" fill="none" stroke="#A58B55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6"/>
+<text x="653" y="310" font-size="15" fill="#8C7449" font-weight="400" text-anchor="start">学习数据变化后，就绪度可以降级。</text>
+<rect x="38" y="378" width="310" height="144" rx="14" fill="#F0EAFC" stroke="#B7A2D7" />
+<text x="56" y="410" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">从真实关闭中学习</text>
+<text x="56" y="440" font-size="16" fill="#536782" font-weight="400" text-anchor="start">域名优先，分类回退</text>
+<text x="56" y="464" font-size="16" fill="#536782" font-weight="400" text-anchor="start">设置的时长是上限</text>
+<rect x="448" y="378" width="310" height="144" rx="14" fill="#EAF1FE" stroke="#9CB4DF" />
+<text x="466" y="410" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">定时清理或手动 AI Clean</text>
+<text x="466" y="440" font-size="16" fill="#536782" font-weight="400" text-anchor="start">定时过期关闭还需要</text>
+<text x="466" y="464" font-size="16" fill="#536782" font-weight="400" text-anchor="start">浏览器真实 idle / locked</text>
+<rect x="858" y="378" width="304" height="144" rx="14" fill="#E7F5EF" stroke="#93C8B0" />
+<text x="876" y="410" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">已关闭标签页记录</text>
+<text x="876" y="440" font-size="16" fill="#536782" font-weight="400" text-anchor="start">逐个或批量恢复</text>
+<text x="876" y="464" font-size="16" fill="#536782" font-weight="400" text-anchor="start">撤销相应自动清理样本</text>
+<path d="M348 450H448m-7 -5 7 5 -7 5" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M758 450H858m-7 -5 7 5 -7 5" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1010 245V340H603V378" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M598 371l5 7 5-7" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M598 252l5-7 5 7" fill="none" stroke="#A58B55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="816" y="329" font-size="14" fill="#60728A" font-weight="400" text-anchor="start">允许清理</text>
+<text x="36" y="588" font-size="16" fill="#60728A" font-weight="400" text-anchor="start">Swift 伴随程序通过 Native Messaging 提供本地学习、空闲预测与 NLP 回退分类。</text>
+<text x="36" y="622" font-size="16" fill="#60728A" font-weight="400" text-anchor="start">仅有较高的空闲预测值，不足以在用户活跃时授权定时关闭。</text>
 </g></svg>

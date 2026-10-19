@@ -1,25 +1,44 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="t d"><title id="t">Neural-Janitor · How it works</title><desc id="d">The Swift companion supplies local learning and prediction via Native Messaging. Fresh installs start in Test mode.</desc>
-<rect x="1" y="1" width="1198" height="298" rx="18" fill="#FAFCFF" stroke="#DCE5F0"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+<title id="title">Neural-Janitor · Preview, readiness and recovery</title><desc id="desc">Neural-Janitor · Preview, readiness and recovery. Repository-specific technical illustration.</desc>
 <g font-family="Arial, 'PingFang SC', 'Microsoft YaHei', sans-serif">
-<text x="36" y="42" font-size="24" fill="#253B55" font-weight="650" text-anchor="start">Neural-Janitor · How it works</text>
-<rect x="36" y="97" width="206.4" height="100" rx="12" fill="#ECF3FE" stroke="#95B3DD"/>
-<text x="52.0" y="132" font-size="19" fill="#253B55" font-weight="650" text-anchor="start">Browser events</text>
-<text x="52.0" y="163" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">Focus, dwell, closes</text>
-<path d="M242.4 147H266.4m-6-4 6 4-6 4" stroke="#7186A3" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-<rect x="266.4" y="97" width="206.4" height="100" rx="12" fill="#E9F5F0" stroke="#88B7A3"/>
-<text x="282.4" y="132" font-size="19" fill="#253B55" font-weight="650" text-anchor="start">Local learning</text>
-<text x="282.4" y="163" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">Category + retention</text>
-<path d="M472.8 147H496.8m-6-4 6 4-6 4" stroke="#7186A3" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-<rect x="496.8" y="97" width="206.4" height="100" rx="12" fill="#ECF3FE" stroke="#95B3DD"/>
-<text x="512.8" y="132" font-size="19" fill="#253B55" font-weight="650" text-anchor="start">Readiness gate</text>
-<text x="512.8" y="163" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">Test / Armed / Deploy</text>
-<path d="M703.2 147H727.2m-6-4 6 4-6 4" stroke="#7186A3" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-<rect x="727.2" y="97" width="206.4" height="100" rx="12" fill="#E9F5F0" stroke="#88B7A3"/>
-<text x="743.2" y="132" font-size="19" fill="#253B55" font-weight="650" text-anchor="start">Action</text>
-<text x="743.2" y="163" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">Preview or cleanup</text>
-<path d="M933.6 147H957.6m-6-4 6 4-6 4" stroke="#7186A3" stroke-width="1.6" fill="none" stroke-linejoin="round"/>
-<rect x="957.6" y="97" width="206.4" height="100" rx="12" fill="#ECF3FE" stroke="#95B3DD"/>
-<text x="973.6" y="132" font-size="19" fill="#253B55" font-weight="650" text-anchor="start">Recovery</text>
-<text x="973.6" y="163" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">Closed-tab history</text>
-<text x="36" y="258" font-size="13" fill="#60748C" font-weight="400" text-anchor="start">The Swift companion supplies local learning and prediction via Native Messaging. Fresh installs start in Test mode.</text>
+<rect x="1" y="1" width="1198" height="678" rx="20" fill="#F8FAFD" stroke="#DBE3ED" />
+<text x="36" y="44" font-size="24" fill="#23324A" font-weight="700" text-anchor="start">Learning readiness controls whether cleanup can become an action.</text>
+<rect x="38" y="104" width="310" height="141" rx="14" fill="#EAF1FE" stroke="#9CB4DF" />
+<text x="56" y="136" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">TEST</text>
+<text x="56" y="166" font-size="16" fill="#536782" font-weight="400" text-anchor="start">Default on fresh install</text>
+<text x="56" y="190" font-size="16" fill="#536782" font-weight="400" text-anchor="start">Preview only; AI Clean locked</text>
+<rect x="448" y="104" width="310" height="141" rx="14" fill="#FFF3DD" stroke="#D9BD83" />
+<text x="466" y="136" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">ARMED</text>
+<text x="466" y="166" font-size="16" fill="#536782" font-weight="400" text-anchor="start">Deploy requested, data growing</text>
+<text x="466" y="190" font-size="16" fill="#536782" font-weight="400" text-anchor="start">Still behaves like Test</text>
+<rect x="858" y="104" width="304" height="141" rx="14" fill="#E7F5EF" stroke="#93C8B0" />
+<text x="876" y="136" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">DEPLOY</text>
+<text x="876" y="166" font-size="16" fill="#536782" font-weight="400" text-anchor="start">Readiness target reached</text>
+<text x="876" y="190" font-size="16" fill="#536782" font-weight="400" text-anchor="start">Eligible cleanup can close tabs</text>
+<path d="M348 172H448m-7 -5 7 5 -7 5" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M758 172H858m-7 -5 7 5 -7 5" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="364" y="155" font-size="13" fill="#23324A" font-weight="400" text-anchor="start">armable</text>
+<text x="776" y="155" font-size="13" fill="#23324A" font-weight="400" text-anchor="start">ready</text>
+<path d="M1010 245V284H603V245" fill="none" stroke="#A58B55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6"/>
+<text x="653" y="310" font-size="15" fill="#8C7449" font-weight="400" text-anchor="start">Readiness can downgrade when learned data changes.</text>
+<rect x="38" y="378" width="310" height="144" rx="14" fill="#F0EAFC" stroke="#B7A2D7" />
+<text x="56" y="410" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">Learn from actual closes</text>
+<text x="56" y="440" font-size="16" fill="#536782" font-weight="400" text-anchor="start">Domain first, category fallback</text>
+<text x="56" y="464" font-size="16" fill="#536782" font-weight="400" text-anchor="start">User caps remain upper bounds</text>
+<rect x="448" y="378" width="310" height="144" rx="14" fill="#EAF1FE" stroke="#9CB4DF" />
+<text x="466" y="410" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">Schedule or manual AI Clean</text>
+<text x="466" y="440" font-size="16" fill="#536782" font-weight="400" text-anchor="start">Scheduled stale closes need</text>
+<text x="466" y="464" font-size="16" fill="#536782" font-weight="400" text-anchor="start">real browser idle / locked</text>
+<rect x="858" y="378" width="304" height="144" rx="14" fill="#E7F5EF" stroke="#93C8B0" />
+<text x="876" y="410" font-size="20" fill="#23324A" font-weight="700" text-anchor="start">Closed-tab history</text>
+<text x="876" y="440" font-size="16" fill="#536782" font-weight="400" text-anchor="start">Restore singly or in batches</text>
+<text x="876" y="464" font-size="16" fill="#536782" font-weight="400" text-anchor="start">Undo the auto-close sample</text>
+<path d="M348 450H448m-7 -5 7 5 -7 5" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M758 450H858m-7 -5 7 5 -7 5" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1010 245V340H603V378" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M598 371l5 7 5-7" fill="none" stroke="#6E809A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M598 252l5-7 5 7" fill="none" stroke="#A58B55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="816" y="329" font-size="14" fill="#60728A" font-weight="400" text-anchor="start">Permitted cleanup</text>
+<text x="36" y="588" font-size="16" fill="#60728A" font-weight="400" text-anchor="start">Swift Native Messaging supplies local learning, idle prediction and NLP fallback classification.</text>
+<text x="36" y="622" font-size="16" fill="#60728A" font-weight="400" text-anchor="start">A high idle prediction alone does not authorize scheduled closure while the user is active.</text>
 </g></svg>
