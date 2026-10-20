@@ -14,22 +14,22 @@
 
 </div>
 
-面向经常打开大量标签页的 macOS 用户。当前需要 **macOS 13+、Chrome / Edge 与 Swift 工具链**；按[安装指南](#安装指南)加载扩展并安装本地伴随程序，第一次使用默认 Test 预览模式。
+如果你平时在 Mac 上经常开着六七十个甚至上百个标签页，大概率也试过（然后卸掉过）各种“闲置 X 小时自动关标签页”的浏览器扩展。固定倒计时最大的问题是不分青红皂白：它常常把你还没审完的 PR、正在查的 API 文档悄悄关掉，却留着十五六个早就看完的 Google 搜索结果页占内存。
 
-Neural-Janitor 由 Chrome / Edge 扩展与本地 Swift 伴随程序组成。它学习**你实际在什么时候关闭标签页**，再结合域名历史、页面分类、使用投入和配置上限，给出清理建议。Core ML 空闲预测与本地页面分类为这个策略提供辅助信号。
+Neural-Janitor 由 Chrome / Edge 扩展与本地 Swift 伴随程序（`The Chronos Engine`）组成。它不靠死板的定时器，而是观察**你平时到底在什么时候按 `Cmd+W` 手动关标签页**（`manual_browser_close`），再结合根域名历史、页面类别、前台停留时长和交互次数，学出属于你自己的保留习惯。Core ML 空闲窗口预测与 Apple `NaturalLanguage` 本地文本分类全部在设备端运行，作为辅助信号配合这套策略。
 
-文档、一次性搜索结果与持续处理的工作页面，不该共用一个固定寿命。项目的核心是完整反馈闭环：**观察 → 学习 → 预览 → 满足条件后执行 → 必要时恢复**。
+运行需要 **macOS 13+、Chrome / Edge 与 Swift 工具链**。新安装永远默认处于 **Test**（仅预览）模式——在系统学够你的真实习惯、且你主动切到 **Deploy** 之前，不会在后台偷关任何一个页面。
 
-## 可以体验什么
+## 为什么它用起来不招人烦
 
-| 体验 | 当前实现 |
+| 核心机制 | 代码里具体是怎么做的 |
 | --- | --- |
-| 预览过期页面 | 新安装默认 **Test**；查看候选项，不直接关闭。 |
-| 学习个人保留习惯 | 手动关闭产生域名/分类建议；Chrome 与 Edge 共享原生学习数据。 |
-| 区分搜索结果 | 搜索页使用独立 `Search Results` / `search:<engine>` 学习桶。 |
-| 控制自动清理 | 就绪度决定 Test / Armed / Deploy；定时过期关闭还检查浏览器真实空闲状态。 |
-| 检查决策输入 | 弹窗展示手动/自动样本、已学习桶数、就绪度与本地运行时状态。 |
-| 恢复已关闭页面 | 支持单个或批量恢复；恢复自动关闭项会删除对应学习样本。 |
+| **先预览，攒够信任再动手** | 新安装默认 `Test`（只给过期候选打标，绝不自动关闭）。`Test → Armed → Deploy` 的状态跃迁由 [deployment-readiness.js](extension/js/deployment-readiness.js) 根据真实学习进度把关。 |
+| **算“切到后台多久”，不算“打开多久”** | 清理比较的是 `now - lastBackgroundedAt` 以及前台停留、交互次数——哪怕一个标签页是三天前打开的，只要十分钟前刚切过去看过，就绝不会当成过期页。 |
+| **绝不用自动清理去自我强化** | 在 [closure-learner.js](extension/js/closure-learner.js) 中，手动关闭权重为 `1.0`（自动过滤 `<15s` 的误触），而自动清理样本权重被压到 `0.2` 仅作上下文；一旦你在恢复记录里点恢复，**对应的自动关闭样本会被立刻删除**，当场纠正偏差。 |
+| **搜索结果页单独隔离建桶** | 搜索页被单独分流进 `Search Results` / `search:<engine>` 学习桶（[search-results.js](extension/js/search-results.js)）。你养成 30 秒关掉 Google 搜索页的习惯，不会连累同根域名下的 Google Docs 或 Gmail 被提前清理。 |
+| **Chrome 与 Edge 共享同一份本地记忆** | 两个浏览器通过 Native Messaging stdio 连接同一个本地 Swift 伴随程序（位于 `~/Library/Application Support/Neural-Janitor/`），共用同一套学习档案和 Core ML 模型。 |
+| **真实空闲门控 + 节假日感知** | 定时清理必须等待浏览器进入真实的 `idle` / `locked` 状态，并且会向伴随程序发送未来 7 天的节假日等级，避免把周一法定假日当成普通工作日来预测作息。 |
 
 ## 清理决策怎样形成
 
@@ -37,13 +37,13 @@ Neural-Janitor 由 Chrome / Edge 扩展与本地 Swift 伴随程序组成。它�
 
 | 模式 | 看到什么 | 可以发生什么 |
 | --- | --- | --- |
-| `Test` | 候选项与学习状态 | 只预览，AI Clean 锁定；这是新安装默认状态。 |
-| `Armed` | 已请求 Deploy，但学习仍在积累 | 继续按 Test 运行，达到就绪目标后再激活。 |
-| `Deploy` | 清理已启用 | 符合条件的定时或手动清理可以关闭标签页，并写入恢复记录。 |
+| `Test` | 过期候选标签与实时学习统计 | 只打标预览，AI Clean 与定时清理全部锁定；新安装默认状态。 |
+| `Armed` | 你请求了 `Deploy`，且已积累至少 **3 次手动关闭 + 1 个已学习桶** | 进入待命状态，继续按预览模式运行，攒够就绪门槛后自动接管。 |
+| `Deploy` | 已达到 **5 次手动关闭 + 2 个已学习桶**（满 **10 次 + 3 个桶**标记为 `safer`） | 满足空闲条件的定时清理与手动 AI Clean 可以关闭标签页，并写入一键恢复记录。 |
 
-当前门槛为 **3 次手动关闭 + 1 个已学习桶**可以待命，**5 次手动关闭 + 2 个已学习桶**达到就绪。这些是启动门槛，不是统计准确率保证。[deployment-readiness.js](extension/js/deployment-readiness.js) 定义门槛与降级逻辑：过早请求启用会保持 Test；失去就绪度后，Deploy 可以退回 Armed 或 Test。
+[deployment-readiness.js](extension/js/deployment-readiness.js) 同时负责就绪升级与降级保护：如果重置了模型或样本不足以支撑当前模式，会自动从 `Deploy` 退回 `Armed` 或 `Test`。
 
-关闭时间学习是主要决策来源。仅有较高的空闲预测值，**不足以**在用户活跃时授权定时关闭。手动 AI Clean 是用户明确请求的另一条路径，低于目标标签数时仍可小批量清理低价值后台页。
+手动关闭时间学习始终是主决策源。就算 Core ML 模型预测当前空闲概率很高，只要你还在操作浏览器，定时任务就**不会**动手关页。弹窗顶部的 **AI Clean** 则是你主动点击的即时减压通道，想立刻腾出内存时可以小批量清掉明显低价值的后台页。
 
 ## 安装指南
 
@@ -244,8 +244,8 @@ bash -n scripts/import_model_bundle.sh
 swift build -c release --package-path companion/NeuralJanitorCompanion
 ```
 
-<p align="center"><sub>Neural-Janitor：边缘加速的标签页卫生管理 —— Chronos 引擎</sub></p>
-
 ## 许可证
 
-[MIT](LICENSE)。当前安装方式需要浏览器开发者模式和 macOS 原生宿主注册；仓库尚不是签名后的商店发行包。
+采用 [MIT License](LICENSE) 开源。由于 macOS 上的 Native Messaging 需要本地注册宿主清单，请在浏览器开发者模式下加载 `extension/` 并执行一次 `./scripts/install.sh` 完成伴随程序构建与注册。
+
+<p align="center"><sub>Neural-Janitor：边缘加速的标签页卫生管理 —— Chronos 引擎</sub></p>

@@ -14,22 +14,22 @@
 
 </div>
 
-For macOS users who keep many tabs open. Requires **macOS 13+, Chrome / Edge and a Swift toolchain**; follow the [installation steps](#setup-instructions) to load the extension and native companion. Fresh installs start in Test preview mode.
+If you work with 60+ open tabs on macOS, you've probably tried—and uninstalled—timer-based auto-close extensions. Fixed timers treat every tab the same: they kill the PR or API reference you still need, while leaving 15 disposable Google search tabs cluttering your window.
 
-Neural-Janitor is a Chrome / Edge extension paired with a local Swift companion. It learns from **when you actually close tabs**, then combines domain history, page category, engagement and your configured caps to propose cleanup. Core ML idle prediction and local page classification support that policy.
+Neural-Janitor pairs a Chrome / Edge extension with a local Swift companion (`The Chronos Engine`). Instead of enforcing a dumb countdown, it watches **when you actually hit `Cmd+W`** (`manual_browser_close`), combines root-domain history, page category, foreground dwell time, and interaction count, and learns how long *you* tend to keep different kinds of pages around. Core ML idle-window prediction and Apple `NaturalLanguage` classification run entirely on-device to support that policy.
 
-A documentation page, a disposable search result and a long-running work tab do not need the same lifetime. The interesting part is the full feedback loop: **observe → learn → preview → act when permitted → recover if needed**.
+Requires **macOS 13+, Chrome / Edge, and a Swift toolchain**. Fresh installs always start in **Test** (preview-only) mode—nothing is closed behind your back until the learner has seen enough of your real habits and you explicitly enable **Deploy**.
 
-## What you can try
+## What makes it behave differently
 
-| Experience | What the current code does |
+| Mechanism | How the code actually implements it |
 | --- | --- |
-| Preview stale tabs | Fresh installs start in **Test**; inspect candidates without closing them. |
-| Learn personal retention | Manual closes feed domain/category recommendations; Chrome and Edge share the native learning store. |
-| Separate search results | Search pages have dedicated `Search Results` / `search:<engine>` learning buckets. |
-| Gate automatic cleanup | Deployment readiness controls Test / Armed / Deploy; scheduled stale closure also checks real browser idle state. |
-| Inspect the reasoning inputs | The popup exposes manual/automatic samples, learned buckets, readiness and local runtime status. |
-| Recover closed tabs | Restore one or several records; restoring an auto-close removes the corresponding learning sample. |
+| **Preview first, earn trust later** | Fresh installs start in `Test` mode (candidates are tagged, never closed). Moving through `Test → Armed → Deploy` is gated by real learning progress in [deployment-readiness.js](extension/js/deployment-readiness.js). |
+| **Measures background idle, not "opened at"** | Stale checks compare `now - lastBackgroundedAt` alongside foreground dwell and interaction count—a 3-day-old tab you just read 10 minutes ago stays untouched. |
+| **Doesn't train on its own auto-closes** | In [closure-learner.js](extension/js/closure-learner.js), manual closes carry `1.0` weight (ignoring `<15s` misclicks), while auto-cleanups are damped to `0.2` context weight. Restoring an auto-closed tab **deletes its sample** so mistakes are unlearned immediately. |
+| **Search results live in their own bucket** | SERP pages are routed into `Search Results` / `search:<engine>` buckets ([search-results.js](extension/js/search-results.js)). Closing Google searches in 30 seconds won't shorten the lifetime of Google Docs or Gmail. |
+| **Shared learning across Chrome & Edge** | Both browsers talk to the same local Swift companion over Native Messaging stdio (`~/Library/Application Support/Neural-Janitor/`), sharing one retention store and Core ML model. |
+| **Real idle gating + holiday awareness** | Scheduled stale cleanup waits for the browser's actual `idle` / `locked` state, and factors in a 7-day workday/weekend/holiday lookahead so a Monday holiday doesn't use a Tuesday workday prior. |
 
 ## How decisions work
 
@@ -37,13 +37,13 @@ A documentation page, a disposable search result and a long-running work tab do 
 
 | Mode | What you see | What can happen |
 | --- | --- | --- |
-| `Test` | Candidates and learning status | Preview only; AI Clean remains locked. This is the fresh-install default. |
-| `Armed` | Deploy has been requested, but readiness is still developing | Test behavior continues until the ready threshold is met. |
-| `Deploy` | Cleanup is enabled | Eligible scheduled and manual cleanup can close tabs and write recovery records. |
+| `Test` | Stale candidates and live learning stats | Preview only; automatic and AI Clean closures stay locked. Fresh-install default. |
+| `Armed` | You requested `Deploy`, and the learner has at least **3 manual closes + 1 learned bucket** | Continues running in preview until it reaches the full readiness threshold. |
+| `Deploy` | At least **5 manual closes + 2 learned buckets** (with a `safer` milestone at **10 + 3**) | Eligible scheduled and manual cleanup can close tabs and write one-click recovery records. |
 
-The current gate allows arming at **3 manual closes + 1 learned bucket**, and readiness at **5 manual closes + 2 learned buckets**. These are startup gates, not a statistical accuracy guarantee. [deployment-readiness.js](extension/js/deployment-readiness.js) owns the thresholds and downgrade behavior. Requesting Deploy too early keeps Test; losing readiness can return Deploy to Armed or Test.
+[deployment-readiness.js](extension/js/deployment-readiness.js) owns these transitions and automatic downgrades: if you reset or lose readiness, `Deploy` steps back down to `Armed` or `Test`.
 
-Retention learning is the main decision source. A high predicted idle probability alone does **not** authorize scheduled closure while you are active. Manual AI Clean is a separate, explicitly requested path and can trim low-value background tabs even below the target count.
+Close-time learning is always the primary authority. Even if the Core ML predictor estimates a high idle probability, scheduled cleanup will **not** close tabs while you are actively using the browser. Manual **AI Clean** in the popup is an explicit on-demand action that can trim a small batch of low-value background tabs when you want breathing room right now.
 
 ## Setup Instructions
 
@@ -244,8 +244,8 @@ bash -n scripts/import_model_bundle.sh
 swift build -c release --package-path companion/NeuralJanitorCompanion
 ```
 
-<p align="center"><sub>Neural-Janitor: Edge-Accelerated Tab Hygiene — The Chronos Engine</sub></p>
-
 ## License
 
-[MIT](LICENSE). Chrome / Edge developer-mode loading and a macOS native-host installation are currently required; this repository is not a signed browser-store release.
+Open-sourced under the [MIT License](LICENSE). Because Native Messaging requires a local host manifest on macOS, load the unpacked extension in Developer Mode and run `./scripts/install.sh` once to register the Swift companion.
+
+<p align="center"><sub>Neural-Janitor: Edge-Accelerated Tab Hygiene — The Chronos Engine</sub></p>
